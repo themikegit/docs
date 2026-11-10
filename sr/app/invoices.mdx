@@ -1,0 +1,74 @@
+---
+title: "Kreiranje i upravljanje fakturama"
+sidebarTitle: "Fakture"
+description: "Kreirajte fakture, razumite brojeve i iznose i pratite svaku fakturu kroz statuse."
+icon: "file-text"
+keywords: ["faktura", "broj fakture", "status", "datum prometa", "storniranje"]
+---
+
+## Pre nego što počnete
+
+Potrebni su vam aktivna firma i bar jedan klijent. Ako nešto nedostaje, stranica **Nova faktura** vas upućuje gde da ga dodate.
+
+## Kreirajte fakturu
+
+Idite na **Fakture** i kliknite **Nova faktura**.
+
+| Polje | Opis |
+| --- | --- |
+| **Broj fakture** | Predlaže se automatski. Možete uneti svoj |
+| **Klijent** | Popunjava valutu i jezik fakture |
+| **Datum** | Datum izdavanja. Podrazumevano danas |
+| **Datum prometa** | Datum prometa dobara ili usluga. Podrazumevano danas |
+| **Valuta** | `EUR`, `RSD` ili `USD` |
+| **Jezik fakture** | Jezik na kom se štampa PDF: engleski ili srpski |
+
+Zatim dodajte jednu ili više stavki. Svaka stavka ima naziv, opcioni opis, količinu, cenu po jedinici i porez u procentima. Nova stavka preuzima poreznu stopu stavke iznad nje.
+
+## Brojevi faktura
+
+Predloženi broj se sastoji od meseca izdavanja, rednog broja i godine:
+
+```text
+Oct07/2026
+```
+
+- Redni broj kreće od 1 svake godine i raste posebno za svaku firmu.
+- Predlog prati polje **Datum** dok ne unesete svoj broj.
+- Ako vaš broj prati isti obrazac, invoicR uzima redni broj iz njega. U suprotnom koristi sledeći slobodan redni broj.
+
+<Info>
+  Dve fakture iste firme ne mogu imati isti broj niti isti redni broj u istoj godini. Ako pokušate, invoicR prikazuje „Ovaj broj fakture (ili njegov redni broj ove godine) je već iskorišćen."
+</Info>
+
+## Kako se računaju iznosi
+
+Za svaku stavku invoicR množi količinu i cenu i zaokružuje na dve decimale. Porez se računa po stavci i zaokružuje na isti način. Faktura prikazuje:
+
+- **Osnovica:** zbir iznosa stavki bez poreza
+- **Porez:** zbir poreza po stavkama, na PDF-u razložen po stopama
+- **Ukupno:** osnovica plus porez
+
+## Statusi
+
+Svaka faktura ima jedan od četiri statusa. Menjate ga kontrolom statusa na stranici fakture.
+
+| Status | Značenje |
+| --- | --- |
+| **Spremna** | Kreirana, ali još nije poslata. Ovo je status svake nove fakture |
+| **Poslata** | Poslali ste fakturu klijentu |
+| **Plaćena** | Klijent je platio |
+| **Stornirana** | Faktura je poništena. Ne ulazi u limite prometa ni u KPO knjigu, a PDF je označen kao storniran |
+
+## Fakture su konačne
+
+Nakon kreiranja fakturu ne možete menjati. Baza odbija svaku izmenu osim statusa. Faktura takođe čuva kopiju podataka vaše firme i klijenta iz trenutka kreiranja.
+
+Da biste ispravili grešku:
+
+- **Još Spremna:** obrišite fakturu i kreirajte novu.
+- **Poslata, Plaćena ili Stornirana:** ne možete je obrisati. Postavite je na **Stornirana** i izdajte novu fakturu.
+
+## Pronalaženje faktura
+
+Stranica **Fakture** prikazuje fakture aktivne firme, od najnovije. Filtrirajte po godini, mesecu ili klijentu. Filteri koriste datum izdavanja i čuvaju se u URL-u, pa filtrirani prikaz možete osvežiti ili sačuvati kao obeleživač.

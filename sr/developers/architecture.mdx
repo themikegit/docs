@@ -1,0 +1,76 @@
+---
+title: "Pregled arhitekture"
+sidebarTitle: "Arhitektura"
+description: "Kako invoicR rešava autentifikaciju, pristup podacima, PDF-ove, kurseve i prevode."
+icon: "layers"
+keywords: ["arhitektura", "Next.js", "Server Actions", "Clerk", "Supabase", "react-pdf"]
+---
+
+## Tehnologije
+
+| Sloj | Tehnologija |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Cache Components), React 19 |
+| Autentifikacija | Clerk (`@clerk/nextjs`) |
+| Baza i skladište | Supabase Postgres i Storage |
+| PDF | `@react-pdf/renderer`, uz `sharp` za konverziju logoa |
+| Stilovi | Tailwind CSS 4 |
+| Hosting | Vercel, region `cdg1` (Pariz) |
+
+## Struktura projekta
+
+```text
+src/
+├── app/
+│   ├── actions.ts            # Sve Server Actions (obrasci, status, jezik)
+│   ├── invoices/             # Lista, nova, detalji i ruta [id]/pdf
+│   ├── clients/              # Lista, novi, detalji
+│   ├── companies/            # Lista, nova, detalji
+│   ├── kpo/route.tsx         # PDF KPO knjige
+│   └── sign-in/, sign-up/    # Clerk stranice
+├── components/               # Obrasci, filteri, kontrola statusa, vidžeti
+├── lib/
+│   ├── db.ts                 # Pristup Supabase bazi
+│   ├── auth.ts               # getUserId()
+│   ├── numbering.ts          # Format i parsiranje broja fakture
+│   ├── format.ts             # Novac, datumi, iznosi, adrese
+│   ├── rates.ts              # Kursevi NBS
+│   ├── i18n/                 # Engleski i srpski rečnici
+│   └── pdf/                  # Dokumenti fakture i KPO knjige
+└── proxy.ts                  # Clerk zaštita ruta
+supabase/
+└── schema.sql
+```
+
+## Autentifikacija
+
+`src/proxy.ts` pokreće Clerk middleware za svaki zahtev. Sve osim `/sign-in` i `/sign-up` zahteva sesiju, uključujući stranice, PDF i KPO rute i Server Actions.
+
+`getUserId()` u `src/lib/auth.ts` vraća Clerk ID prijavljenog korisnika i baca grešku ako ga nema.
+
+## Pristup podacima
+
+Sav pristup bazi ide kroz `src/lib/db.ts` i izvršava se samo na serveru.
+
+- Supabase klijent koristi tajni ključ, koji zaobilazi row level security. Svaki upit eksplicitno filtrira po `user_id`.
+- Čitanja su umotana u React `cache()`, pa više komponenti na istoj stranici deli jedan upit po zahtevu.
+- Redovi se mapiraju između snake_case kolona i camelCase TypeScript tipova iz `src/lib/types.ts`.
+
+Šema definiše i RLS politike zasnovane na `sub` claimu Clerk tokena. One stupaju na snagu ako dodate Clerk kao third-party auth provajdera u Supabase i šaljete upite sa korisničkim tokenom.
+
+## Izmene podataka
+
+Obrasci šalju podatke u Server Actions u `src/app/actions.ts`. Svaka akcija proverava unos, poziva `db.ts`, revalidira pogođene putanje, postavlja kratkotrajni `flash` kolačić i preusmerava. Toast provajder čita kolačić i prikazuje poruku na sledećoj stranici.
+
+## Kursevi
+
+`src/lib/rates.ts` preuzima srednje kurseve NBS sa `kurs.resenje.org`, koji prenosi kurseve Narodne banke Srbije.
+
+- `rsdRate(currency, date)` vraća broj dinara za jednu jedinicu valute na dati datum. Prošli datumi se keširaju trajno. Današnji i budući datumi se keširaju nekoliko sati.
+- `rsdRateHistory(currency, days)` vraća dnevne kurseve za grafikon u bočnoj traci, bez vikenda i praznika.
+
+Neuspela preuzimanja bacaju grešku, pa se nikad ne keširaju.
+
+## Prevodi
+
+`src/lib/i18n/dictionaries.ts` sadrži rečnike `en` i `sr`. Rečnik `sr` mora imati potpuno iste ključeve kao `en`. Jezik aplikacije dolazi iz kolačića `lang`, a podrazumevano je engleski. PDF fakture koristi svoje oznake iz `src/lib/pdf/invoice-document.tsx`, izabrane prema polju `language` svake fakture.

@@ -1,0 +1,43 @@
+---
+title: "Manage your companies"
+sidebarTitle: "Companies"
+description: "Add the companies you invoice from and choose which one issues new invoices."
+icon: "building"
+keywords: ["company", "active company", "logo", "IBAN", "invoice note"]
+---
+
+A company is the seller on your invoices. You can have several companies, but exactly one is **Active** at a time. The active company issues every new invoice, and the invoice list and KPO export show its invoices.
+
+## Add a company
+
+Go to **My companies** and click **New company**. Enter a **Business name** or **Your name** (at least one is required). The business name appears as the sender on invoices.
+
+The form has these sections:
+
+| Section | Fields |
+| --- | --- |
+| **Business** | Logo, business name, your name, tax ID, registration no., activity code |
+| **Address** | Street, city, state, ZIP / postal code, country |
+| **Contact and payment** | Email, phone, website, bank account, IBAN, SWIFT |
+| **Invoice note** | Text printed at the bottom of every invoice, for example your activity code or a VAT exemption |
+
+invoicR removes spaces from the IBAN and converts the IBAN and SWIFT to uppercase when you save.
+
+### Logo
+
+Click **Upload logo** and choose a PNG, JPG, WebP, or SVG file up to 2 MB. The logo appears at the top of your invoice PDFs.
+
+## Switch the active company
+
+Open a company and turn on **Active**, then click **Save changes**. The previously active company becomes inactive. To stop issuing from the active company, make another company active instead.
+
+## How changes affect issued invoices
+
+invoicR copies your company details into each invoice when you create it. Editing a company later, including its logo, doesn't change invoices you already issued.
+
+## Delete a company
+
+You can delete a company only if:
+
+- It isn't the active company. Make another company active first.
+- It has no invoices.

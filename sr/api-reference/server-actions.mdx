@@ -1,0 +1,178 @@
+---
+title: "Server Actions"
+description: "Referenca za interne Server Actions u src/app/actions.ts: ulazi, provere, greške i efekti."
+icon: "server"
+tag: "Interno"
+keywords: ["Server Actions", "actions.ts", "validacija", "greške", "izmene"]
+---
+
+<Warning>
+  Server Actions su interne. Next.js ih poziva iz obrazaca aplikacije preko generisanih ID-jeva koji se menjaju sa svakim buildom. Ne možete ih pozvati van aplikacije invoicR. Ova stranica ih opisuje za programere koji rade na aplikaciji.
+</Warning>
+
+Sve akcije su u `src/app/actions.ts` i izvršavaju se na serveru sa ID-jem prijavljenog korisnika.
+
+## Kako akcije rade
+
+- **Akcije obrazaca** primaju `(prevState, formData)` i koriste se sa React `useActionState`. Akcije za izmenu i brisanje primaju `id` zapisa kao prvi argument.
+- **Kada provera ne prođe,** akcija vraća `{ error }`. Poruka dolazi iz rečnika za trenutni jezik aplikacije.
+- **Kada uspe,** akcija revalidira pogođene putanje, postavlja `flash` kolačić od 10 sekundi koji toast provajder prikazuje na sledećoj stranici i preusmerava.
+- **Tekstualna polja** se pre provere čiste od razmaka na početku i kraju.
+
+Poruke o greškama ispod su na srpskom, kako ih aplikacija prikazuje kada je jezik srpski.
+
+## Klijenti
+
+### createClientAction
+
+Kreira klijenta.
+
+| Polje obrasca | Obavezno | Pravila |
+| --- | --- | --- |
+| `name` | Da | |
+| `currency` | Da | `EUR`, `RSD` ili `USD` |
+| `language` | Da | `en` ili `sr` |
+| `email`, `address`, `city`, `state`, `postalCode`, `country`, `taxId`, `regNo` | Ne | |
+
+| Greška | Poruka |
+| --- | --- |
+| Nema naziva | Naziv je obavezan. |
+| Neispravna valuta | Izaberite valutu. |
+| Neispravan jezik | Izaberite jezik. |
+
+**Kada uspe:** revalidira `/clients`, toast „Klijent je kreiran", preusmerava na `/clients`.
+
+### updateClientAction
+
+`updateClientAction(id, prevState, formData)`. Ista polja i greške kao `createClientAction`.
+
+**Kada uspe:** toast „Klijent je sačuvan", preusmerava na `/clients`.
+
+### deleteClientAction
+
+`deleteClientAction(id)`.
+
+| Greška | Poruka |
+| --- | --- |
+| Klijent ima fakture | Ovaj klijent ima fakture i ne može se obrisati. |
+
+**Kada uspe:** toast „Klijent je obrisan", preusmerava na `/clients`.
+
+## Fakture
+
+### createInvoiceAction
+
+Kreira fakturu za aktivnu firmu. Server kopira trenutne podatke klijenta i firme u fakturu i sam računa `subtotal`, `taxAmount` i `total`.
+
+| Polje obrasca | Obavezno | Pravila |
+| --- | --- | --- |
+| `clientId` | Da | Mora biti jedan od korisnikovih klijenata |
+| `date` | Da | `YYYY-MM-DD` |
+| `tradingDate` | Da | `YYYY-MM-DD` |
+| `currency` | Da | `EUR`, `RSD` ili `USD` |
+| `language` | Da | `en` ili `sr` |
+| `number` | Da | Skraćuje se na 50 znakova |
+| `items` | Da | JSON niz, pogledajte ispod |
+
+Svaka stavka u `items`:
+
+```json
+{ "name": "Razvoj za oktobar", "description": "", "quantity": 1, "unitPrice": 3000, "taxRate": 0 }
+```
+
+| Polje stavke | Pravila |
+| --- | --- |
+| `name` | Obavezno |
+| `quantity` | Veće od 0 |
+| `unitPrice` | 0 ili više |
+| `taxRate` | Između 0 i 100. Prazno znači 0 |
+
+Provere idu ovim redom i vraća se prva greška:
+
+| Greška | Poruka |
+| --- | --- |
+| Nema aktivne firme | Prvo dodajte firmu u delu Moje firme. |
+| Nepoznat klijent | Izaberite klijenta. |
+| Neispravan `date` | Unesite ispravan datum. |
+| Neispravan `tradingDate` | Unesite ispravan datum prometa. |
+| Neispravna valuta | Izaberite valutu. |
+| Neispravan jezik | Izaberite jezik. |
+| Prazan broj | Unesite broj fakture. |
+| Nema stavki ili neispravan JSON | Dodajte bar jednu stavku. |
+| Problem sa stavkom | Na primer „Stavka 2: količina mora biti veća od 0." |
+| Broj ili redni broj već postoji | Ovaj broj fakture (ili njegov redni broj ove godine) je već iskorišćen. |
+
+**Kada uspe:** revalidira `/invoices`, toast „Faktura je kreirana", preusmerava na `/invoices/{id}`.
+
+### setInvoiceStatusAction
+
+`setInvoiceStatusAction(id, status)`. Postavlja status na `ready`, `sent`, `paid` ili `cancelled`. Svaka druga vrednost se ignoriše. Ne vraća ništa i ne preusmerava. Kontrola statusa je poziva uz optimističko ažuriranje i prikazuje toast.
+
+### deleteInvoiceAction
+
+`deleteInvoiceAction(id)`. Briše fakturu samo ako je njen status `ready`.
+
+| Greška | Poruka |
+| --- | --- |
+| Nije Spremna | Mogu se brisati samo fakture sa statusom Spremna. Umesto toga je stornirajte. |
+
+**Kada uspe:** toast „Faktura je obrisana", preusmerava na `/invoices`.
+
+## Firme
+
+### createCompanyAction
+
+Kreira firmu. Prva firma korisnika automatski postaje aktivna.
+
+| Polje obrasca | Pravila |
+| --- | --- |
+| `name`, `business` | Bar jedno je obavezno |
+| `logo` | Opcioni fajl. PNG, JPEG, WebP ili SVG, do 2 MB. Otprema se u bucket `logos` |
+| `removeLogo` | Ako je postavljeno, uklanja logo |
+| `active` | Ako je postavljeno, ova firma postaje aktivna |
+| `iban` | Uklanjaju se razmaci, velika slova |
+| `swift` | Velika slova |
+| `address`, `city`, `state`, `postalCode`, `country`, `taxId`, `regNo`, `activityCode`, `email`, `phone`, `bankAccount`, `website`, `invoiceNote` | Opciono |
+
+| Greška | Poruka |
+| --- | --- |
+| Pogrešan tip logoa | Logo mora biti PNG, JPG, WebP ili SVG slika. |
+| Prevelik logo | Logo može imati najviše 2 MB. |
+| Nema naziva | Unesite naziv firme ili vaše ime. |
+
+**Kada uspe:** revalidira celu aplikaciju, toast „Firma je kreirana", preusmerava na `/companies`.
+
+### updateCompanyAction
+
+`updateCompanyAction(id, prevState, formData)`. Ista polja i greške kao `createCompanyAction`, plus „Firma nije pronađena." ako ID ne pripada korisniku. Trenutni logo ostaje osim ako se otpremi novi ili je postavljeno `removeLogo`.
+
+**Kada uspe:** toast „Firma je sačuvana", preusmerava na `/companies`.
+
+### deleteCompanyAction
+
+`deleteCompanyAction(id)`.
+
+| Greška | Poruka |
+| --- | --- |
+| Firma je aktivna | Aktivirajte drugu firmu pre brisanja ove. |
+| Firma ima fakture | Ova firma ima fakture i ne može se obrisati. |
+
+**Kada uspe:** toast „Firma je obrisana", preusmerava na `/companies`.
+
+## Šabloni
+
+Obrazac fakture upravlja šablonima na licu mesta, pa ove akcije vraćaju podatke umesto preusmeravanja.
+
+### addTemplateAction
+
+`addTemplateAction(name, description)`. Vraća `{ template }` kada uspe, ili `{ error }` sa porukom „Prvo unesite naziv stavke." ako je naziv prazan.
+
+### deleteTemplateAction
+
+`deleteTemplateAction(id)`. Briše šablon. Ne vraća ništa.
+
+## Jezik
+
+### setLanguageAction
+
+`setLanguageAction(lang)`. Postavlja kolačić `lang` na `en` ili `sr` na godinu dana i revalidira celu aplikaciju. Svaka druga vrednost se ignoriše.

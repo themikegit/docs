@@ -1,0 +1,50 @@
+---
+title: "API reference"
+sidebarTitle: "Overview"
+description: "The HTTP routes and internal Server Actions that make up invoicR's interface."
+icon: "book-open"
+keywords: ["API", "routes", "Server Actions", "authentication", "OpenAPI"]
+---
+
+invoicR has no public API. It exposes two HTTP routes that return PDFs. Every other operation runs through Next.js Server Actions, which only the app's own forms can call.
+
+## HTTP routes
+
+<Columns cols={2}>
+  <Card title="Get invoice PDF" icon="file-down" href="/api-reference/invoice-pdf">
+    `GET /invoices/{id}/pdf`
+  </Card>
+  <Card title="Get KPO book PDF" icon="book-open" href="/api-reference/kpo-book">
+    `GET /kpo`
+  </Card>
+</Columns>
+
+The routes are described in `openapi.yaml` (OpenAPI 3.1) in this docs repository.
+
+## Authentication
+
+Both routes require a signed-in Clerk session. The Clerk middleware in `src/proxy.ts` protects every path except `/sign-in` and `/sign-up`. A browser sends the session cookie automatically, so links inside the app just work.
+
+To call a route outside the browser, for example with `curl`, send the Clerk session cookie:
+
+```bash
+curl "http://localhost:3000/kpo?year=2026" \
+  --cookie "__session=<clerk-session-token>" \
+  --output kpo-2026.pdf
+```
+
+<Note>
+  The interactive playground is turned off on these pages. Requests from the docs site can't carry your invoicR session, so they would always fail.
+</Note>
+
+## Base URL
+
+Use the URL where your invoicR instance runs. For local development, that's:
+
+```text
+http://localhost:3000
+```
+
+## Server Actions
+
+Creating, updating, and deleting data happens through Server Actions in `src/app/actions.ts`. Next.js calls them under generated IDs that change with every build, so they aren't a stable API. See [Server Actions](/api-reference/server-actions) for what each one accepts and validates.

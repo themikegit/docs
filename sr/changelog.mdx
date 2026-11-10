@@ -1,0 +1,70 @@
+---
+title: "Istorija izmena"
+description: "Kako se invoicR razvijao, na osnovu istorije commitova."
+icon: "history"
+keywords: ["istorija izmena", "novosti", "izmene", "changelog"]
+---
+
+invoicR još ne objavljuje verzije. Svaki unos ispod obuhvata jedan ili više commitova iz repozitorijuma, od najnovijeg.
+
+<Update label="9. novembar 2026." description="Adrese, kursevi i obaveštenja" tags={["Novo", "Fakture", "Baza"]}>
+  ## Adrese za SAD i Srbiju
+
+  Klijenti i firme imaju nova polja **Savezna država** i **Poštanski broj**. Adrese se štampaju po lokalnom redosledu:
+
+  - SAD: `Mashpee, MA 02649, USA`
+  - Srbija i ostale zemlje: `21000 Novi Sad, Srbija`
+
+  ## Tekući račun samo za domaće klijente
+
+  PDF fakture prikazuje vaš tekući račun samo kada je klijent iz Srbije. IBAN i SWIFT se i dalje prikazuju svima.
+
+  ## Kurs USD/RSD u bočnoj traci
+
+  Bočna traka prikazuje najnoviji srednji kurs NBS za USD/RSD i grafikon za 30 dana. Pređite mišem preko grafikona da vidite kurs za određeni dan. Pogledajte [Limiti prometa](/sr/app/turnover-limits#kurs-usd/rsd).
+
+  ## Obaveštenja
+
+  Kratka poruka sada potvrđuje promenu statusa, kreiranje, čuvanje i brisanje klijenata, firmi i faktura, kao i čuvanje i brisanje šablona.
+
+  <Warning>
+    Postojeće baze zahtevaju migraciju. Pokrenite `supabase/migrations-2026-11-09-client-state-postal.sql` u Supabase SQL editoru.
+  </Warning>
+
+  Commit `f500fbc`
+</Update>
+
+<Update label="30. oktobar 2026. (performanse)" description="Brža stranica sa fakturama" tags={["Performanse"]}>
+  ## Brže učitavanje
+
+  - Čitanja iz baze se dele u okviru jednog zahteva, pa komponente na istoj stranici više ne ponavljaju isti upit.
+  - Funkcije sada rade u Parizu (`cdg1`), blizu Supabase baze.
+
+  Commit `6f671e3`
+</Update>
+
+<Update label="30. oktobar 2026." description="Prvo izdanje" tags={["Novo", "Fakture", "Izveštaji"]}>
+  ## Prva verzija aplikacije invoicR
+
+  Projekat je počeo od Create Next App šablona i u jednom izdanju dobio ceo skup funkcija.
+
+  **Fakturisanje**
+
+  - Fakture sa više stavki, valutom i jezikom po klijentu i izmenljivim rednim brojevima, npr. `Oct07/2026`
+  - Statusi (Spremna, Poslata, Plaćena, Stornirana), uz zaključane podatke nakon izdavanja
+  - Klijenti, više firmi sa jednom aktivnom i otpremanje logoa
+  - Šabloni stavki za ponovnu upotrebu
+
+  **Dokumenti i izveštaji**
+
+  - PDF fakture sa pregledom u aplikaciji
+  - Izvoz KPO knjige
+  - Limiti prometa od 6.000.000 RSD i 8.000.000 RSD, preračunati po kursu NBS
+
+  **Platforma**
+
+  - Interfejs na engleskom i srpskom
+  - Supabase baza i skladište, Clerk prijava
+
+  Commitovi `bf918c2`, `ee7002c`
+</Update>

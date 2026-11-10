@@ -1,0 +1,40 @@
+---
+title: "Manage your clients"
+sidebarTitle: "Clients"
+description: "Store the people and businesses you bill, with their default currency and invoice language."
+icon: "users"
+keywords: ["client", "customer", "currency", "invoice language"]
+---
+
+Clients are the buyers on your invoices. Each client stores contact details plus two defaults for new invoices: currency and invoice language.
+
+## Add a client
+
+Go to **Clients** and click **New client**. Fill in the form and click **Create client**.
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| **Name** | Yes | Shown on invoices and in the client filter |
+| **Email** | No | |
+| **Tax ID** | No | Printed on the invoice |
+| **Registration no.** | No | Printed on the invoice |
+| **Currency** | Yes | `EUR`, `RSD`, or `USD`. Defaults to `EUR` |
+| **Invoice language** | Yes | English or Serbian |
+| **Street**, **City**, **State**, **ZIP / Postal code**, **Country** | No | Used for the address on the invoice |
+
+When you select a client on a new invoice, invoicR fills in the client's currency and invoice language. You can still change both on that invoice.
+
+## Addresses
+
+invoicR formats the second address line by local convention:
+
+- **United States:** city, then state and ZIP. For example, `Mashpee, MA 02649, USA`.
+- **Everywhere else:** postal code and city. For example, `21000 Novi Sad, Srbija`.
+
+A client with the country set to Serbia (or left empty) counts as domestic. Domestic clients see your local **Bank account** on the invoice. IBAN and SWIFT show for every client.
+
+## Edit or delete a client
+
+Open the client from the **Clients** list. Edits don't change invoices you already issued, because each invoice keeps a copy of the client's details.
+
+You can't delete a client that has invoices.

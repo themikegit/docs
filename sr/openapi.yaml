@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: invoicR PDF rute
+  version: 0.1.0
+  description: >-
+    Dve HTTP rute u aplikaciji invoicR. Obe vraćaju PDF i zahtevaju prijavljenu Clerk sesiju.
+    Sve ostale operacije idu kroz interne Server Actions.
+servers:
+  - url: http://localhost:3000
+    description: Lokalni razvojni server
+security:
+  - clerkSession: []
+tags:
+  - name: PDF
+paths:
+  /invoices/{id}/pdf:
+    get:
+      tags: [PDF]
+      operationId: getInvoicePdf
+      summary: Preuzmi PDF fakture
+      description: >-
+        Generiše jednu fakturu kao PDF pomoću @react-pdf/renderer. Logo izdavaoca se preuzima i
+        pretvara u PNG pomoću sharp, jer react-pdf ne može da iscrta SVG ni WebP. Ako logo ne
+        može da se učita, PDF se generiše bez njega.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID fakture (UUID).
+          schema:
+            type: string
+            format: uuid
+        - name: download
+          in: query
+          required: false
+          description: >-
+            Ako postoji (bilo koja vrednost), odgovor koristi `Content-Disposition: attachment`.
+            U suprotnom se PDF otvara u pregledaču, što koristi pregled u aplikaciji.
+          schema:
+            type: string
+          example: "1"
+      responses:
+        "200":
+          description: >-
+            PDF fakture. Ime fajla je `Invoice <broj>.pdf`, gde je `/` u broju zamenjeno
+            sa `-`.
+          headers:
+            Content-Disposition:
+              description: '`inline` ili `attachment`, sa `filename="Invoice Oct07-2026.pdf"`.'
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        "404":
+          description: Faktura ne postoji ili pripada drugom korisniku.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Invoice not found
+      x-codeSamples:
+        - lang: bash
+          label: Preuzimanje PDF-a
+          source: |
+            curl "http://localhost:3000/invoices/<invoice-id>/pdf?download=1" \
+              --cookie "__session=<clerk-session-token>" \
+              --output invoice.pdf
+  /kpo:
+    get:
+      tags: [PDF]
+      operationId: getKpoBook
+      summary: Preuzmi PDF KPO knjige
+      description: >-
+        Generiše KPO knjigu (Obrazac KPO) za aktivnu firmu. Uključuje svaku fakturu koja nije
+        stornirana i čiji je datum prometa u toj godini, poređano po datumu prometa. Osnovica
+        svake fakture se preračunava u RSD po srednjem kursu NBS na datum prometa.
+      parameters:
+        - name: year
+          in: query
+          required: false
+          description: Četvorocifrena godina. Ako nedostaje ili nije ispravna, koristi se tekuća godina.
+          schema:
+            type: string
+            pattern: '^\d{4}$'
+          example: "2026"
+      responses:
+        "200":
+          description: >-
+            KPO knjiga kao prilog nazvan `KPO <godina> <firma>.pdf`, sa ASCII rezervnim
+            imenom `KPO <godina>.pdf`.
+          headers:
+            Content-Disposition:
+              description: Uvek `attachment`.
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        "404":
+          description: Korisnik nema aktivnu firmu.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: No active company
+        "503":
+          description: Kursevi nisu mogli da se učitaju sa kurs.resenje.org.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Exchange rates couldn't be loaded. Try again in a moment.
+      x-codeSamples:
+        - lang: bash
+          label: Preuzimanje KPO knjige za 2026.
+          source: |
+            curl "http://localhost:3000/kpo?year=2026" \
+              --cookie "__session=<clerk-session-token>" \
+              --output kpo-2026.pdf
+components:
+  securitySchemes:
+    clerkSession:
+      type: apiKey
+      in: cookie
+      name: __session
+      description: >-
+        Clerk kolačić sesije, postavlja se kada se prijavite u invoicR. Zahteve bez važeće sesije
+        odbija Clerk middleware u src/proxy.ts.

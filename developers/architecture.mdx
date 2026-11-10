@@ -1,0 +1,76 @@
+---
+title: "Architecture overview"
+sidebarTitle: "Architecture"
+description: "How invoicR handles authentication, data access, PDFs, exchange rates, and translations."
+icon: "layers"
+keywords: ["architecture", "Next.js", "Server Actions", "Clerk", "Supabase", "react-pdf"]
+---
+
+## Stack
+
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Cache Components), React 19 |
+| Auth | Clerk (`@clerk/nextjs`) |
+| Database and storage | Supabase Postgres and Storage |
+| PDFs | `@react-pdf/renderer`, with `sharp` for logo conversion |
+| Styling | Tailwind CSS 4 |
+| Hosting | Vercel, region `cdg1` (Paris) |
+
+## Project layout
+
+```text
+src/
+├── app/
+│   ├── actions.ts            # All Server Actions (forms, status, language)
+│   ├── invoices/             # List, new, detail, and [id]/pdf route
+│   ├── clients/              # List, new, detail
+│   ├── companies/            # List, new, detail
+│   ├── kpo/route.tsx         # KPO book PDF
+│   └── sign-in/, sign-up/    # Clerk pages
+├── components/               # Forms, filters, status control, widgets
+├── lib/
+│   ├── db.ts                 # Supabase data access
+│   ├── auth.ts               # getUserId()
+│   ├── numbering.ts          # Invoice number format and parsing
+│   ├── format.ts             # Money, dates, totals, addresses
+│   ├── rates.ts              # NBS exchange rates
+│   ├── i18n/                 # English and Serbian dictionaries
+│   └── pdf/                  # Invoice and KPO documents
+└── proxy.ts                  # Clerk route protection
+supabase/
+└── schema.sql
+```
+
+## Authentication
+
+`src/proxy.ts` runs Clerk middleware on every request. Everything except `/sign-in` and `/sign-up` requires a session, including pages, the PDF and KPO routes, and Server Actions.
+
+`getUserId()` in `src/lib/auth.ts` returns the signed-in Clerk user ID and throws if there is none.
+
+## Data access
+
+All database access goes through `src/lib/db.ts` and runs only on the server.
+
+- The Supabase client uses the secret key, which bypasses row level security. Every query filters by `user_id` explicitly.
+- Reads are wrapped in React `cache()`, so several components on one page share a single query per request.
+- Rows map between snake_case columns and camelCase TypeScript types defined in `src/lib/types.ts`.
+
+The schema also defines RLS policies based on the `sub` claim of the Clerk session token. They take effect if you add Clerk as a third-party auth provider in Supabase and query with a user token.
+
+## Mutations
+
+Forms post to Server Actions in `src/app/actions.ts`. Each action validates input, calls `db.ts`, revalidates the affected paths, sets a short-lived `flash` cookie, and redirects. The toast provider reads the cookie and shows a message on the next page.
+
+## Exchange rates
+
+`src/lib/rates.ts` fetches NBS middle rates from `kurs.resenje.org`, which republishes National Bank of Serbia rates.
+
+- `rsdRate(currency, date)` returns RSD per unit for one date. Past dates are cached indefinitely. Today and future dates are cached for hours.
+- `rsdRateHistory(currency, days)` returns daily rates for the sidebar chart, skipping weekends and holidays.
+
+Failed lookups throw, so they're never cached.
+
+## Translations
+
+`src/lib/i18n/dictionaries.ts` holds the `en` and `sr` dictionaries. The `sr` dictionary must have exactly the same keys as `en`. The app language comes from the `lang` cookie and defaults to English. Invoice PDFs use their own labels in `src/lib/pdf/invoice-document.tsx`, selected by each invoice's `language`.

@@ -1,0 +1,29 @@
+---
+title: "Deploy to Vercel"
+sidebarTitle: "Deployment"
+description: "Deploy invoicR to Vercel and the configuration it depends on."
+icon: "cloud-upload"
+keywords: ["deploy", "Vercel", "region", "production"]
+---
+
+invoicR is configured for Vercel.
+
+## Deploy
+
+1. Import the repository into Vercel.
+2. Add the environment variables from [Local setup](/developers/local-setup) to the project.
+3. Deploy.
+
+## Configuration that matters in production
+
+| Setting | File | Why |
+| --- | --- | --- |
+| `regions: ["cdg1"]` | `vercel.json` | Runs functions in Paris, next to the Supabase database, to cut query latency |
+| `serverExternalPackages: ["@react-pdf/renderer"]` | `next.config.ts` | react-pdf ships WebAssembly and font tooling that must not be bundled |
+| `outputFileTracingIncludes` | `next.config.ts` | Includes the Inter font files that the invoice PDF and KPO routes read at runtime |
+| `serverActions.bodySizeLimit: "3mb"` | `next.config.ts` | Allows 2 MB logo uploads plus form overhead |
+| `cacheComponents: true` | `next.config.ts` | Enables `"use cache"` for exchange rates |
+
+<Note>
+  If your Supabase project is in a different region, change `regions` in `vercel.json` to the closest Vercel region.
+</Note>

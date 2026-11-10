@@ -1,0 +1,32 @@
+---
+title: "Izvoz KPO knjige"
+sidebarTitle: "KPO knjiga"
+description: "Generišite godišnju KPO knjigu (Obrazac KPO) kao PDF, preračunatu u RSD po srednjem kursu NBS."
+icon: "book-open"
+keywords: ["KPO", "knjiga o ostvarenom prometu", "paušalno oporezovani", "NBS"]
+---
+
+KPO knjiga (Knjiga o ostvarenom prometu paušalno oporezovanih obveznika) prikazuje vaše prihode za kalendarsku godinu. invoicR je pravi iz faktura aktivne firme.
+
+## Izvezite knjigu
+
+1. Idite na **Fakture**.
+2. Ako imate fakture u više godina, izaberite godinu pored dugmeta **Izvezi KPO**.
+3. Kliknite **Izvezi KPO**.
+
+invoicR preuzima PDF nazvan po godini i vašoj firmi, npr. `KPO 2026 Studio.pdf`.
+
+## Šta sadrži
+
+- **Zaglavlje:** PIB, ime, firma, adresa i šifra delatnosti aktivne firme.
+- **Jedan red po fakturi**, poređano po datumu prometa. Svaki red prikazuje datum prometa, broj fakture i klijenta.
+- **Iznosi u RSD.** invoicR preračunava osnovicu svake fakture (bez poreza) po srednjem kursu NBS na datum prometa. Za fakture u stranoj valuti red prikazuje i originalni iznos i primenjeni kurs.
+- **Zbir** na dnu.
+
+Svi prihodi idu u kolonu **Prihod od delatnosti od izvršenih usluga**. Kolona za prodaju proizvoda je uvek 0.
+
+Stornirane fakture nisu prihod, pa ih knjiga izostavlja. Godina fakture se određuje po datumu prometa, ne po datumu izdavanja.
+
+<Warning>
+  Za izvoz je potrebna kursna lista. Ako servis za kurseve nije dostupan, videćete poruku "Exchange rates couldn't be loaded. Try again in a moment."
+</Warning>

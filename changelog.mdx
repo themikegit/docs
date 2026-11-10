@@ -1,0 +1,70 @@
+---
+title: "Changelog"
+description: "How invoicR has evolved, based on the commit history."
+icon: "history"
+keywords: ["changelog", "release notes", "updates", "history"]
+---
+
+invoicR doesn't publish versioned releases yet. Each entry below groups one or more commits from the repository, newest first.
+
+<Update label="November 9, 2026" description="Addresses, exchange rates, and notifications" tags={["Feature", "Invoices", "Database"]}>
+  ## US and Serbian addresses
+
+  Clients and companies have new **State** and **ZIP / Postal code** fields. Addresses print in the local order:
+
+  - United States: `Mashpee, MA 02649, USA`
+  - Serbia and elsewhere: `21000 Novi Sad, Srbija`
+
+  ## Bank account for domestic clients only
+
+  The invoice PDF shows your local bank account only when the client is in Serbia. IBAN and SWIFT still show for everyone.
+
+  ## USD/RSD rate in the sidebar
+
+  The sidebar shows the latest NBS middle rate for USD/RSD with a 30-day chart. Hover the chart to see the rate for a specific day. See [Turnover limits](/app/turnover-limits#usd/rsd-rate).
+
+  ## Notifications
+
+  A short message now confirms status changes, creating, saving, and deleting clients, companies, and invoices, and saving or deleting templates.
+
+  <Warning>
+    Existing databases need a migration. Run `supabase/migrations-2026-11-09-client-state-postal.sql` in the Supabase SQL editor.
+  </Warning>
+
+  Commit `f500fbc`
+</Update>
+
+<Update label="October 30, 2026 (performance)" description="Faster invoices page" tags={["Performance"]}>
+  ## Faster page loads
+
+  - Database reads are shared within a request, so components on the same page no longer repeat the same query.
+  - Functions now run in Paris (`cdg1`), next to the Supabase database.
+
+  Commit `6f671e3`
+</Update>
+
+<Update label="October 30, 2026" description="First release" tags={["Feature", "Invoices", "Reporting"]}>
+  ## The first version of invoicR
+
+  The project started from Create Next App and gained its full feature set in one release.
+
+  **Invoicing**
+
+  - Invoices with multiple items, per-client currency and language, and editable sequential numbers such as `Oct07/2026`
+  - Statuses (Ready, Sent, Paid, Cancelled), with invoice details locked once issued
+  - Clients, multiple companies with one active, and logo upload
+  - Reusable item templates
+
+  **Documents and reporting**
+
+  - Invoice PDFs with an in-app preview
+  - KPO book export
+  - Turnover limits for 6,000,000 RSD and 8,000,000 RSD, converted with NBS exchange rates
+
+  **Platform**
+
+  - English and Serbian interface
+  - Supabase database and storage, Clerk sign-in
+
+  Commits `bf918c2`, `ee7002c`
+</Update>

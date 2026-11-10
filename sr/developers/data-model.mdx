@@ -1,0 +1,58 @@
+---
+title: "Model podataka"
+description: "Tabele, ograničenja i pravila u bazi koja izdate fakture čine konačnim."
+icon: "database"
+keywords: ["šema", "baza", "Supabase", "tabele", "trigeri", "RLS"]
+---
+
+Cela šema je u `supabase/schema.sql`. Svaki red ima kolonu `user_id` sa Clerk ID-jem korisnika.
+
+## Tabele
+
+<AccordionGroup>
+  <Accordion title="companies">
+    Podaci izdavaoca koji se štampaju na fakturama: ime, firma, adresa, PIB (`tax_id`), matični broj (`reg_no`), šifra delatnosti, kontakt, tekući račun, IBAN, SWIFT, veb-sajt, napomena na fakturi i URL logoa.
+
+    `is_active` označava firmu koja izdaje nove fakture. Parcijalni jedinstveni indeks (`companies_one_active`) dozvoljava najviše jednu aktivnu firmu po korisniku.
+  </Accordion>
+  <Accordion title="clients">
+    Naziv kupca, email, adresa, PIB i matični broj, plus podrazumevane vrednosti za nove fakture:
+
+    - `currency`: `EUR`, `RSD` ili `USD` (podrazumevano `EUR`)
+    - `language`: `en` ili `sr` (podrazumevano `en`)
+  </Accordion>
+  <Accordion title="invoices">
+    | Kolona | Opis |
+    | --- | --- |
+    | `number` | Broj za prikaz, npr. `Oct07/2026` |
+    | `status` | `ready`, `sent`, `paid` ili `cancelled` |
+    | `year`, `seq` | Godina polja `date` i redni broj u njoj |
+    | `company_id`, `client_id` | Veze ka izdavaocu i kupcu |
+    | `client`, `seller` | JSON kopije podataka klijenta i firme u trenutku izdavanja |
+    | `date`, `trading_date` | Datum izdavanja i datum prometa |
+    | `language` | `en` ili `sr`, jezik PDF-a |
+    | `items` | JSON niz `{ name, description, quantity, unitPrice, taxRate }`, bar jedan element |
+    | `subtotal`, `tax_amount`, `total` | Iznosi sa dve decimale |
+    | `currency` | `EUR`, `RSD` ili `USD` |
+
+    `number` i `(year, seq)` su jedinstveni po firmi. Strani ključevi proveravaju da firma i klijent pripadaju istom korisniku.
+  </Accordion>
+  <Accordion title="templates">
+    Stavke za ponovnu upotrebu, sa poljima `name` i `description`.
+  </Accordion>
+</AccordionGroup>
+
+## Pravila u bazi
+
+Ova pravila su u samoj bazi, pa važe bez obzira na to koji klijent šalje upit.
+
+| Pravilo | Mehanizam |
+| --- | --- |
+| Na fakturi se menja samo `status` | Triger `invoices_no_update` |
+| Brišu se samo fakture sa statusom `ready` | Triger `invoices_no_delete` |
+| Firme i klijenti sa fakturama ne mogu se obrisati | Strani ključevi `on delete restrict` |
+| Tačno jedna aktivna firma posle promene | `set_active_company(p_user_id, p_company_id)` izvršava obe izmene u jednoj transakciji. Može je pozvati samo tajni ključ |
+
+## Skladište
+
+Bucket `logos` je javan, pa fakture i PDF-ovi učitavaju logo bez sesije. Fajlovi se čuvaju kao `<user_id>/<uuid>.<ext>`. invoicR nikad ne briše stare logoe, jer izdate fakture i dalje upućuju na njih.

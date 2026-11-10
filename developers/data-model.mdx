@@ -1,0 +1,58 @@
+---
+title: "Data model"
+description: "Tables, constraints, and database rules that keep issued invoices final."
+icon: "database"
+keywords: ["schema", "database", "Supabase", "tables", "triggers", "RLS"]
+---
+
+The full schema is in `supabase/schema.sql`. Every row has a `user_id` column that holds the Clerk user ID.
+
+## Tables
+
+<AccordionGroup>
+  <Accordion title="companies">
+    The seller details printed on invoices: name, business, address, tax ID (`tax_id`), registration number (`reg_no`), activity code, contact details, bank account, IBAN, SWIFT, website, invoice note, and logo URL.
+
+    `is_active` marks the company that issues new invoices. A partial unique index (`companies_one_active`) allows at most one active company per user.
+  </Accordion>
+  <Accordion title="clients">
+    The buyer's name, email, address, tax ID, and registration number, plus defaults for new invoices:
+
+    - `currency`: `EUR`, `RSD`, or `USD` (default `EUR`)
+    - `language`: `en` or `sr` (default `en`)
+  </Accordion>
+  <Accordion title="invoices">
+    | Column | Description |
+    | --- | --- |
+    | `number` | Display number, for example `Oct07/2026` |
+    | `status` | `ready`, `sent`, `paid`, or `cancelled` |
+    | `year`, `seq` | Year of `date` and the sequence within it |
+    | `company_id`, `client_id` | References to the seller and buyer |
+    | `client`, `seller` | JSON snapshots of client and company details at issue time |
+    | `date`, `trading_date` | Issue date and date of supply |
+    | `language` | `en` or `sr`, the PDF language |
+    | `items` | JSON array of `{ name, description, quantity, unitPrice, taxRate }`, at least one |
+    | `subtotal`, `tax_amount`, `total` | Amounts with two decimals |
+    | `currency` | `EUR`, `RSD`, or `USD` |
+
+    `number` and `(year, seq)` are each unique per company. Foreign keys check that the company and client belong to the same user.
+  </Accordion>
+  <Accordion title="templates">
+    Reusable invoice items with a `name` and `description`.
+  </Accordion>
+</AccordionGroup>
+
+## Database rules
+
+These rules live in the database, so they apply no matter which client sends the query.
+
+| Rule | Mechanism |
+| --- | --- |
+| Only `status` can change on an invoice | `invoices_no_update` trigger |
+| Only `ready` invoices can be deleted | `invoices_no_delete` trigger |
+| Companies and clients with invoices can't be deleted | `on delete restrict` foreign keys |
+| Exactly one active company after a switch | `set_active_company(p_user_id, p_company_id)` runs both updates in one transaction. Only the secret key can call it |
+
+## Storage
+
+The `logos` bucket is public, so invoices and PDFs can load logos without a session. Files are stored under `<user_id>/<uuid>.<ext>`. invoicR never deletes old logo files, because issued invoices still point to them.

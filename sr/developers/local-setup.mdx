@@ -1,0 +1,69 @@
+---
+title: "Lokalno pokretanje aplikacije invoicR"
+sidebarTitle: "Lokalno pokretanje"
+description: "Podesite Supabase i Clerk, unesite promenljive okruženja i pokrenite razvojni server."
+icon: "terminal"
+keywords: ["podešavanje", "Supabase", "Clerk", "promenljive okruženja", "next dev"]
+---
+
+invoicR je Next.js 16 aplikacija. Za prijavu koristi Clerk, a Supabase za bazu i čuvanje logoa.
+
+## Preduslovi
+
+- Node.js i npm
+- [Supabase](https://supabase.com) projekat
+- [Clerk](https://clerk.com) aplikacija
+
+<Steps>
+  <Step title="Instalirajte zavisnosti">
+    ```bash
+    npm install
+    ```
+  </Step>
+  <Step title="Kreirajte bazu">
+    Otvorite Supabase SQL editor i pokrenite `supabase/schema.sql`. Skripta kreira:
+
+    - Tabele `companies`, `clients`, `invoices` i `templates` sa row level security
+    - Javni storage bucket `logos` (limit 2 MB; PNG, JPEG, WebP, SVG)
+    - Funkciju `set_active_company` i trigere koji fakture čine konačnim
+
+    Ako je vaša baza starija od novembra 2026, pokrenite i `supabase/migrations-2026-11-09-client-state-postal.sql` da biste dodali kolone `state` i `postal_code`.
+  </Step>
+  <Step title="Podesite promenljive okruženja">
+    Napravite `.env.local` u korenu projekta:
+
+    ```bash .env.local
+    # Supabase
+    NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+    SUPABASE_SECRET_KEY=<secret key>
+
+    # Clerk
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<publishable key>
+    CLERK_SECRET_KEY=<secret key>
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/invoices
+    NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/invoices
+    ```
+
+    <Warning>
+      `SUPABASE_SECRET_KEY` zaobilazi row level security. Držite ga samo na serveru i van sistema za kontrolu verzija.
+    </Warning>
+  </Step>
+  <Step title="Pokrenite razvojni server">
+    ```bash
+    npm run dev
+    ```
+
+    Otvorite `http://localhost:3000`. Početna stranica preusmerava na `/invoices`, koja traži prijavu.
+  </Step>
+</Steps>
+
+## Skripte
+
+| Komanda | Šta radi |
+| --- | --- |
+| `npm run dev` | Pokreće razvojni server |
+| `npm run build` | Pravi produkcioni build |
+| `npm run start` | Pokreće produkcioni build |
+| `npm run lint` | Pokreće ESLint |

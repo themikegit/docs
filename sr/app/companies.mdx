@@ -1,0 +1,43 @@
+---
+title: "Upravljanje firmama"
+sidebarTitle: "Firme"
+description: "Dodajte firme iz kojih fakturišete i izaberite koja izdaje nove fakture."
+icon: "building"
+keywords: ["firma", "aktivna firma", "logo", "IBAN", "napomena na fakturi"]
+---
+
+Firma je izdavalac na vašim fakturama. Možete imati više firmi, ali je samo jedna **Aktivna**. Aktivna firma izdaje svaku novu fakturu, a lista faktura i KPO izvoz prikazuju njene fakture.
+
+## Dodajte firmu
+
+Idite na **Moje firme** i kliknite **Nova firma**. Unesite **Naziv firme** ili **Vaše ime** (bar jedno je obavezno). Naziv firme se prikazuje kao izdavalac na fakturama.
+
+Obrazac ima ove delove:
+
+| Deo | Polja |
+| --- | --- |
+| **Firma** | Logo, naziv firme, vaše ime, PIB, matični broj, šifra delatnosti |
+| **Adresa** | Ulica i broj, grad, savezna država, poštanski broj, država |
+| **Kontakt i plaćanje** | Email, telefon, veb-sajt, tekući račun, IBAN, SWIFT |
+| **Napomena na fakturi** | Tekst na dnu svake fakture, npr. šifra delatnosti ili napomena o PDV-u |
+
+Pri čuvanju invoicR uklanja razmake iz IBAN-a i pretvara IBAN i SWIFT u velika slova.
+
+### Logo
+
+Kliknite **Otpremi logo** i izaberite PNG, JPG, WebP ili SVG fajl do 2 MB. Logo se prikazuje na vrhu PDF-a fakture.
+
+## Promenite aktivnu firmu
+
+Otvorite firmu, uključite **Aktivna** i kliknite **Sačuvaj izmene**. Prethodno aktivna firma postaje neaktivna. Da biste prestali da izdajete iz aktivne firme, aktivirajte drugu.
+
+## Kako izmene utiču na izdate fakture
+
+invoicR kopira podatke firme u svaku fakturu u trenutku kreiranja. Kasnije izmene firme, uključujući logo, ne menjaju već izdate fakture.
+
+## Brisanje firme
+
+Firmu možete obrisati samo ako:
+
+- Nije aktivna. Prvo aktivirajte drugu firmu.
+- Nema fakture.

@@ -1,0 +1,29 @@
+---
+title: "Postavljanje na Vercel"
+sidebarTitle: "Postavljanje"
+description: "Postavite invoicR na Vercel i saznajte od kojih podešavanja zavisi."
+icon: "cloud-upload"
+keywords: ["deploy", "Vercel", "region", "produkcija"]
+---
+
+invoicR je podešen za Vercel.
+
+## Postavljanje
+
+1. Uvezite repozitorijum u Vercel.
+2. Dodajte projektu promenljive okruženja iz [Lokalnog pokretanja](/sr/developers/local-setup).
+3. Pokrenite deploy.
+
+## Podešavanja bitna za produkciju
+
+| Podešavanje | Fajl | Zašto |
+| --- | --- | --- |
+| `regions: ["cdg1"]` | `vercel.json` | Funkcije rade u Parizu, blizu Supabase baze, radi bržih upita |
+| `serverExternalPackages: ["@react-pdf/renderer"]` | `next.config.ts` | react-pdf sadrži WebAssembly i alate za fontove koji se ne smeju bundlovati |
+| `outputFileTracingIncludes` | `next.config.ts` | Uključuje Inter fontove koje rute za PDF fakture i KPO čitaju u toku rada |
+| `serverActions.bodySizeLimit: "3mb"` | `next.config.ts` | Dozvoljava otpremanje logoa do 2 MB uz ostatak obrasca |
+| `cacheComponents: true` | `next.config.ts` | Omogućava `"use cache"` za kurseve |
+
+<Note>
+  Ako je vaš Supabase projekat u drugom regionu, promenite `regions` u `vercel.json` na najbliži Vercel region.
+</Note>

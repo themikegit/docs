@@ -1,0 +1,176 @@
+---
+title: "Server Actions"
+description: "Reference for the internal Server Actions in src/app/actions.ts: inputs, validation, errors, and side effects."
+icon: "server"
+tag: "Internal"
+keywords: ["Server Actions", "actions.ts", "validation", "errors", "mutations"]
+---
+
+<Warning>
+  Server Actions are internal. Next.js invokes them from the app's own forms under generated IDs that change with every build. You can't call them from outside invoicR. This page documents them for developers working on the app.
+</Warning>
+
+All actions are in `src/app/actions.ts` and run on the server with the signed-in user's ID.
+
+## How actions behave
+
+- **Form actions** take `(prevState, formData)` and are used with React `useActionState`. Update and delete actions take the record `id` as their first argument.
+- **On validation failure,** an action returns `{ error }`. The message comes from the dictionary for the current app language.
+- **On success,** an action revalidates the affected paths, sets a 10-second `flash` cookie that the toast provider shows on the next page, and redirects.
+- **Text fields** are trimmed before validation.
+
+## Clients
+
+### createClientAction
+
+Creates a client.
+
+| Form field | Required | Rules |
+| --- | --- | --- |
+| `name` | Yes | |
+| `currency` | Yes | `EUR`, `RSD`, or `USD` |
+| `language` | Yes | `en` or `sr` |
+| `email`, `address`, `city`, `state`, `postalCode`, `country`, `taxId`, `regNo` | No | |
+
+| Error | Message |
+| --- | --- |
+| Missing name | Name is required. |
+| Invalid currency | Select a currency. |
+| Invalid language | Select a language. |
+
+**On success:** revalidates `/clients`, toast "Client created", redirects to `/clients`.
+
+### updateClientAction
+
+`updateClientAction(id, prevState, formData)`. Same fields and errors as `createClientAction`.
+
+**On success:** toast "Client saved", redirects to `/clients`.
+
+### deleteClientAction
+
+`deleteClientAction(id)`.
+
+| Error | Message |
+| --- | --- |
+| Client has invoices | This client has invoices and can't be deleted. |
+
+**On success:** toast "Client deleted", redirects to `/clients`.
+
+## Invoices
+
+### createInvoiceAction
+
+Creates an invoice for the active company. The server copies the client's and company's current details into the invoice and calculates `subtotal`, `taxAmount`, and `total` itself.
+
+| Form field | Required | Rules |
+| --- | --- | --- |
+| `clientId` | Yes | Must be one of the user's clients |
+| `date` | Yes | `YYYY-MM-DD` |
+| `tradingDate` | Yes | `YYYY-MM-DD` |
+| `currency` | Yes | `EUR`, `RSD`, or `USD` |
+| `language` | Yes | `en` or `sr` |
+| `number` | Yes | Cut to 50 characters |
+| `items` | Yes | JSON array, see below |
+
+Each item in `items`:
+
+```json
+{ "name": "Development for October", "description": "", "quantity": 1, "unitPrice": 3000, "taxRate": 0 }
+```
+
+| Item field | Rules |
+| --- | --- |
+| `name` | Required |
+| `quantity` | Greater than 0 |
+| `unitPrice` | 0 or more |
+| `taxRate` | Between 0 and 100. Empty means 0 |
+
+Checks run in this order, and the first failure is returned:
+
+| Error | Message |
+| --- | --- |
+| No active company | Add a company under My companies first. |
+| Unknown client | Select a client. |
+| Bad `date` | Enter a valid date. |
+| Bad `tradingDate` | Enter a valid trading date. |
+| Invalid currency | Select a currency. |
+| Invalid language | Select a language. |
+| Empty number | Enter an invoice number. |
+| No items or invalid JSON | Add at least one item. |
+| Item problem | For example, "Item 2: amount must be greater than 0." |
+| Duplicate number or sequence | This invoice number (or its sequence this year) is already used. |
+
+**On success:** revalidates `/invoices`, toast "Invoice created", redirects to `/invoices/{id}`.
+
+### setInvoiceStatusAction
+
+`setInvoiceStatusAction(id, status)`. Sets the status to `ready`, `sent`, `paid`, or `cancelled`. Any other value is ignored. Returns nothing and doesn't redirect. The status control calls it with an optimistic update and shows a toast.
+
+### deleteInvoiceAction
+
+`deleteInvoiceAction(id)`. Deletes an invoice only if its status is `ready`.
+
+| Error | Message |
+| --- | --- |
+| Not Ready | Only invoices that are still Ready can be deleted. Cancel it instead. |
+
+**On success:** toast "Invoice deleted", redirects to `/invoices`.
+
+## Companies
+
+### createCompanyAction
+
+Creates a company. The user's first company becomes active automatically.
+
+| Form field | Rules |
+| --- | --- |
+| `name`, `business` | At least one is required |
+| `logo` | Optional file. PNG, JPEG, WebP, or SVG, up to 2 MB. Uploaded to the `logos` bucket |
+| `removeLogo` | If set, clears the logo |
+| `active` | If set, makes this the active company |
+| `iban` | Spaces removed, uppercased |
+| `swift` | Uppercased |
+| `address`, `city`, `state`, `postalCode`, `country`, `taxId`, `regNo`, `activityCode`, `email`, `phone`, `bankAccount`, `website`, `invoiceNote` | Optional |
+
+| Error | Message |
+| --- | --- |
+| Wrong logo type | Logo must be a PNG, JPG, WebP or SVG image. |
+| Logo too large | Logo must be 2 MB or smaller. |
+| No name | Add a business name or your name. |
+
+**On success:** revalidates the whole app, toast "Company created", redirects to `/companies`.
+
+### updateCompanyAction
+
+`updateCompanyAction(id, prevState, formData)`. Same fields and errors as `createCompanyAction`, plus "Company not found." if the ID doesn't belong to the user. The current logo is kept unless a new one is uploaded or `removeLogo` is set.
+
+**On success:** toast "Company saved", redirects to `/companies`.
+
+### deleteCompanyAction
+
+`deleteCompanyAction(id)`.
+
+| Error | Message |
+| --- | --- |
+| Company is active | Make another company active before deleting this one. |
+| Company has invoices | This company has invoices and can't be deleted. |
+
+**On success:** toast "Company deleted", redirects to `/companies`.
+
+## Templates
+
+The invoice form manages templates in place, so these actions return data instead of redirecting.
+
+### addTemplateAction
+
+`addTemplateAction(name, description)`. Returns `{ template }` on success, or `{ error: "Give the item a name first." }` if the name is empty.
+
+### deleteTemplateAction
+
+`deleteTemplateAction(id)`. Deletes the template. Returns nothing.
+
+## Language
+
+### setLanguageAction
+
+`setLanguageAction(lang)`. Sets the `lang` cookie to `en` or `sr` for one year and revalidates the whole app. Any other value is ignored.

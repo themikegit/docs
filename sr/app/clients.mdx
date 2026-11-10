@@ -1,0 +1,40 @@
+---
+title: "Upravljanje klijentima"
+sidebarTitle: "Klijenti"
+description: "Čuvajte osobe i firme kojima fakturišete, sa podrazumevanom valutom i jezikom fakture."
+icon: "users"
+keywords: ["klijent", "kupac", "valuta", "jezik fakture"]
+---
+
+Klijenti su kupci na vašim fakturama. Svaki klijent čuva kontakt podatke i dve podrazumevane vrednosti za nove fakture: valutu i jezik fakture.
+
+## Dodajte klijenta
+
+Idite na **Klijenti** i kliknite **Novi klijent**. Popunite obrazac i kliknite **Kreiraj klijenta**.
+
+| Polje | Obavezno | Napomena |
+| --- | --- | --- |
+| **Naziv** | Da | Prikazuje se na fakturama i u filteru klijenata |
+| **Email** | Ne | |
+| **PIB** | Ne | Štampa se na fakturi |
+| **Matični broj** | Ne | Štampa se na fakturi |
+| **Valuta** | Da | `EUR`, `RSD` ili `USD`. Podrazumevano `EUR` |
+| **Jezik fakture** | Da | Engleski ili srpski |
+| **Ulica i broj**, **Grad**, **Savezna država**, **Poštanski broj**, **Država** | Ne | Koristi se za adresu na fakturi |
+
+Kada na novoj fakturi izaberete klijenta, invoicR popunjava njegovu valutu i jezik fakture. Oba i dalje možete promeniti na toj fakturi.
+
+## Adrese
+
+invoicR formira drugi red adrese po lokalnom pravilu:
+
+- **SAD:** grad, pa savezna država i ZIP. Na primer `Mashpee, MA 02649, USA`.
+- **Sve ostale zemlje:** poštanski broj i grad. Na primer `21000 Novi Sad, Srbija`.
+
+Klijent sa državom Srbija (ili bez unete države) smatra se domaćim. Domaći klijenti vide vaš **Tekući račun** na fakturi. IBAN i SWIFT se prikazuju svim klijentima.
+
+## Izmena ili brisanje klijenta
+
+Otvorite klijenta iz liste **Klijenti**. Izmene ne menjaju već izdate fakture, jer svaka faktura čuva kopiju podataka klijenta.
+
+Klijenta koji ima fakture ne možete obrisati.

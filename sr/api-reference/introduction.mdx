@@ -1,0 +1,50 @@
+---
+title: "API referenca"
+sidebarTitle: "Pregled"
+description: "HTTP rute i interne Server Actions koje čine interfejs aplikacije invoicR."
+icon: "book-open"
+keywords: ["API", "rute", "Server Actions", "autentifikacija", "OpenAPI"]
+---
+
+invoicR nema javni API. Postoje dve HTTP rute koje vraćaju PDF. Sve ostale operacije idu kroz Next.js Server Actions, koje mogu da pozivaju samo obrasci same aplikacije.
+
+## HTTP rute
+
+<Columns cols={2}>
+  <Card title="Preuzmi PDF fakture" icon="file-down" href="/sr/api-reference/invoice-pdf">
+    `GET /invoices/{id}/pdf`
+  </Card>
+  <Card title="Preuzmi PDF KPO knjige" icon="book-open" href="/sr/api-reference/kpo-book">
+    `GET /kpo`
+  </Card>
+</Columns>
+
+Rute su opisane u `sr/openapi.yaml` (OpenAPI 3.1) u ovom repozitorijumu dokumentacije.
+
+## Autentifikacija
+
+Obe rute zahtevaju prijavljenu Clerk sesiju. Clerk middleware u `src/proxy.ts` štiti svaku putanju osim `/sign-in` i `/sign-up`. Pregledač automatski šalje kolačić sesije, pa linkovi unutar aplikacije rade bez dodatnih koraka.
+
+Da biste pozvali rutu van pregledača, na primer pomoću `curl`, pošaljite Clerk kolačić sesije:
+
+```bash
+curl "http://localhost:3000/kpo?year=2026" \
+  --cookie "__session=<clerk-session-token>" \
+  --output kpo-2026.pdf
+```
+
+<Note>
+  Interaktivni playground je isključen na ovim stranicama. Zahtevi sa sajta dokumentacije ne mogu da nose vašu invoicR sesiju, pa bi uvek bili neuspešni.
+</Note>
+
+## Osnovni URL
+
+Koristite URL na kom radi vaša instanca aplikacije invoicR. Za lokalni razvoj to je:
+
+```text
+http://localhost:3000
+```
+
+## Server Actions
+
+Kreiranje, izmena i brisanje podataka idu kroz Server Actions u `src/app/actions.ts`. Next.js ih poziva preko generisanih ID-jeva koji se menjaju sa svakim buildom, pa nisu stabilan API. Pogledajte [Server Actions](/sr/api-reference/server-actions) za ulaze i provere svake akcije.

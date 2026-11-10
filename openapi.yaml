@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: invoicR PDF routes
+  version: 0.1.0
+  description: >-
+    The two HTTP routes in invoicR. Both return PDFs and require a signed-in Clerk session.
+    All other operations run through internal Server Actions.
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+security:
+  - clerkSession: []
+tags:
+  - name: PDF
+paths:
+  /invoices/{id}/pdf:
+    get:
+      tags: [PDF]
+      operationId: getInvoicePdf
+      summary: Get invoice PDF
+      description: >-
+        Renders one invoice as a PDF with @react-pdf/renderer. The seller's logo is fetched and
+        converted to PNG with sharp, because react-pdf can't draw SVG or WebP. If the logo fails
+        to load, the PDF renders without it.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Invoice ID (UUID).
+          schema:
+            type: string
+            format: uuid
+        - name: download
+          in: query
+          required: false
+          description: >-
+            If present (any value), the response uses `Content-Disposition: attachment`.
+            Otherwise the PDF opens inline, which the in-app preview uses.
+          schema:
+            type: string
+          example: "1"
+      responses:
+        "200":
+          description: >-
+            The invoice PDF. The file name is `Invoice <number>.pdf`, with `/` in the number
+            replaced by `-`.
+          headers:
+            Content-Disposition:
+              description: '`inline` or `attachment`, with `filename="Invoice Oct07-2026.pdf"`.'
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        "404":
+          description: The invoice doesn't exist or belongs to another user.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Invoice not found
+      x-codeSamples:
+        - lang: bash
+          label: Download a PDF
+          source: |
+            curl "http://localhost:3000/invoices/<invoice-id>/pdf?download=1" \
+              --cookie "__session=<clerk-session-token>" \
+              --output invoice.pdf
+  /kpo:
+    get:
+      tags: [PDF]
+      operationId: getKpoBook
+      summary: Get KPO book PDF
+      description: >-
+        Renders the KPO book (Obrazac KPO) for the active company. Includes every invoice that
+        isn't cancelled and whose trading date falls in the year, sorted by trading date. Each
+        subtotal is converted to RSD with the NBS middle rate on the trading date.
+      parameters:
+        - name: year
+          in: query
+          required: false
+          description: Four-digit year. Defaults to the current year if missing or invalid.
+          schema:
+            type: string
+            pattern: '^\d{4}$'
+          example: "2026"
+      responses:
+        "200":
+          description: >-
+            The KPO book as an attachment named `KPO <year> <business>.pdf`, with an ASCII
+            fallback name `KPO <year>.pdf`.
+          headers:
+            Content-Disposition:
+              description: Always `attachment`.
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                contentMediaType: application/pdf
+        "404":
+          description: The user has no active company.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: No active company
+        "503":
+          description: Exchange rates couldn't be loaded from kurs.resenje.org.
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: Exchange rates couldn't be loaded. Try again in a moment.
+      x-codeSamples:
+        - lang: bash
+          label: Download the 2026 KPO book
+          source: |
+            curl "http://localhost:3000/kpo?year=2026" \
+              --cookie "__session=<clerk-session-token>" \
+              --output kpo-2026.pdf
+components:
+  securitySchemes:
+    clerkSession:
+      type: apiKey
+      in: cookie
+      name: __session
+      description: >-
+        Clerk session cookie, set when you sign in to invoicR. Requests without a valid session
+        are rejected by the Clerk middleware in src/proxy.ts.

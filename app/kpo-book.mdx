@@ -1,0 +1,32 @@
+---
+title: "Export your KPO book"
+sidebarTitle: "KPO book"
+description: "Generate the yearly KPO book (Obrazac KPO) as a PDF, converted to RSD at the NBS middle rate."
+icon: "book-open"
+keywords: ["KPO", "knjiga o ostvarenom prometu", "paušalno oporezovani", "NBS"]
+---
+
+The KPO book (Knjiga o ostvarenom prometu paušalno oporezovanih obveznika) lists your income for a calendar year. invoicR builds it from your invoices for the active company.
+
+## Export the book
+
+1. Go to **Invoices**.
+2. If you have invoices in more than one year, pick the year next to **Export KPO**.
+3. Click **Export KPO**.
+
+invoicR downloads a PDF named after the year and your business, for example `KPO 2026 Studio.pdf`.
+
+## What's included
+
+- **Header:** your tax ID (PIB), name, business, address, and activity code from the active company.
+- **One row per invoice**, sorted by trading date. Each row shows the trading date, the invoice number, and the client.
+- **Amounts in RSD.** invoicR converts each invoice's subtotal (before tax) using the NBS middle rate on its trading date. For foreign-currency invoices, the row also shows the original amount and the rate used.
+- **Totals** at the bottom.
+
+All income goes in the **Prihod od delatnosti od izvršenih usluga** (services) column. The products column is always 0.
+
+Cancelled invoices aren't income, so the book leaves them out. The book uses the trading date, not the issue date, to decide which year an invoice belongs to.
+
+<Warning>
+  The export needs exchange rates. If the rate service is unreachable, you see "Exchange rates couldn't be loaded. Try again in a moment."
+</Warning>

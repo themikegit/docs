@@ -1,47 +1,45 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Issue your first invoice"
+sidebarTitle: "Quickstart"
+description: "Set up your company and a client, then create and download your first invoice."
+keywords: ["quickstart", "first invoice", "getting started"]
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+This guide takes you from a new account to a downloaded invoice PDF.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
-    ```bash
-    npm install your-package
-    ```
+  <Step title="Sign in">
+    Open invoicR and sign up or sign in. Every page except sign-in and sign-up requires an account, and you only ever see your own data.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+  <Step title="Add your company">
+    Go to **My companies** and click **New company**. Enter at least a **Business name** or **Your name**. Add your tax ID, address, and payment details so they appear on your invoices.
 
-    ```bash
-    your-cli init
-    ```
+    Your first company becomes active automatically. The active company issues all new invoices.
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+  <Step title="Add a client">
+    Go to **Clients** and click **New client**. Enter a **Name**, and choose the client's **Currency** and **Invoice language**. New invoices for this client use these as defaults.
+  </Step>
+  <Step title="Create the invoice">
+    Go to **Invoices** and click **New invoice**. Select the client, check the dates, and add at least one item with an amount and a price. The summary on the right updates as you type.
 
-    ```bash
-    your-cli start
-    ```
+    Click **Create invoice**. invoicR saves the invoice and opens it.
+  </Step>
+  <Step title="Download the PDF">
+    On the invoice page, click **Download PDF**. When you send the invoice, set its status to **Sent**. When the client pays, set it to **Paid**.
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<Warning>
+  You can't edit an invoice after you create it. Only its status can change. Double-check the client, dates, and items before you click **Create invoice**.
+</Warning>
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Invoices" icon="file-text" href="/app/invoices">
+    Numbering, statuses, and deleting versus cancelling.
+  </Card>
+  <Card title="Item templates" icon="bookmark" href="/app/templates">
+    Save items you bill often.
+  </Card>
+</Columns>

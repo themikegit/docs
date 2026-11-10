@@ -1,0 +1,34 @@
+---
+title: "Track turnover limits"
+sidebarTitle: "Turnover limits"
+description: "See how close you are to the Serbian bookkeeping and VAT turnover limits."
+icon: "gauge"
+keywords: ["turnover", "VAT limit", "PDV", "6 million", "8 million", "paušalac"]
+---
+
+The top of the **Invoices** page shows your turnover against the two limits that apply to Serbian flat-rate entrepreneurs.
+
+| Card | Period | Limit | What crossing it means |
+| --- | --- | --- | --- |
+| **Calendar year** | January 1 to today | 6,000,000 RSD | Double-entry bookkeeping |
+| **Last 365 days** | The last 365 days, including today | 8,000,000 RSD | Mandatory VAT registration |
+
+Each card shows your turnover, the percentage of the limit you've used, and how much is left. If you go over, the bar turns red and shows how far over you are.
+
+## How turnover is calculated
+
+- invoicR uses each invoice's subtotal, before tax.
+- It converts each amount to RSD at the NBS middle rate on the invoice's trading date.
+- Cancelled invoices don't count.
+- Only invoices from the active company count.
+
+## Other statistics
+
+A third card shows:
+
+- **Invoices:** the number of invoices, excluding cancelled ones
+- **Average monthly income:** this year's income divided by the months from your first invoice this year to the current month
+
+## USD/RSD rate
+
+The sidebar shows the latest NBS middle rate for USD/RSD with a chart of the last 30 days. Hover the chart to see the rate on a specific day.

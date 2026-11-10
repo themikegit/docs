@@ -1,0 +1,69 @@
+---
+title: "Run invoicR locally"
+sidebarTitle: "Local setup"
+description: "Set up Supabase and Clerk, configure environment variables, and start the development server."
+icon: "terminal"
+keywords: ["setup", "Supabase", "Clerk", "environment variables", "next dev"]
+---
+
+invoicR is a Next.js 16 app. It uses Clerk for sign-in and Supabase for the database and logo storage.
+
+## Prerequisites
+
+- Node.js and npm
+- A [Supabase](https://supabase.com) project
+- A [Clerk](https://clerk.com) application
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  <Step title="Create the database">
+    Open the Supabase SQL editor and run `supabase/schema.sql`. It creates:
+
+    - The `companies`, `clients`, `invoices`, and `templates` tables with row level security
+    - A public `logos` storage bucket (2 MB limit; PNG, JPEG, WebP, SVG)
+    - The `set_active_company` function and the triggers that make invoices final
+
+    If your database predates November 2026, also run `supabase/migrations-2026-11-09-client-state-postal.sql` to add the `state` and `postal_code` columns.
+  </Step>
+  <Step title="Set environment variables">
+    Create `.env.local` in the project root:
+
+    ```bash .env.local
+    # Supabase
+    NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
+    SUPABASE_SECRET_KEY=<secret key>
+
+    # Clerk
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=<publishable key>
+    CLERK_SECRET_KEY=<secret key>
+    NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+    NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/invoices
+    NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/invoices
+    ```
+
+    <Warning>
+      `SUPABASE_SECRET_KEY` bypasses row level security. Keep it on the server and out of source control.
+    </Warning>
+  </Step>
+  <Step title="Start the dev server">
+    ```bash
+    npm run dev
+    ```
+
+    Open `http://localhost:3000`. The home page redirects to `/invoices`, which asks you to sign in.
+  </Step>
+</Steps>
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Build for production |
+| `npm run start` | Serve the production build |
+| `npm run lint` | Run ESLint |

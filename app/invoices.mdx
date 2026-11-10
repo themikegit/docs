@@ -1,0 +1,74 @@
+---
+title: "Create and manage invoices"
+sidebarTitle: "Invoices"
+description: "Create invoices, understand numbering and totals, and track each invoice through its statuses."
+icon: "file-text"
+keywords: ["invoice", "numbering", "status", "trading date", "cancel invoice"]
+---
+
+## Before you start
+
+You need an active company and at least one client. If either is missing, the **New invoice** page links you to the page where you can add it.
+
+## Create an invoice
+
+Go to **Invoices** and click **New invoice**.
+
+| Field | Description |
+| --- | --- |
+| **Invoice number** | Suggested automatically. You can type your own |
+| **Client** | Fills in the currency and invoice language |
+| **Date** | The issue date. Defaults to today |
+| **Trading date** | The date of supply (datum prometa). Defaults to today |
+| **Currency** | `EUR`, `RSD`, or `USD` |
+| **Invoice language** | The language the PDF is printed in: English or Serbian |
+
+Then add one or more items. Each item has a name, an optional description, an amount, a price per amount, and a tax rate in percent. A new item copies the tax rate of the item above it.
+
+## Invoice numbers
+
+The suggested number combines the issue month, a sequence number, and the year:
+
+```text
+Oct07/2026
+```
+
+- The sequence restarts at 1 every year and counts up per company.
+- The suggestion follows the **Date** field until you type your own number.
+- If your own number follows the same pattern, invoicR takes the sequence from it. Otherwise it uses the next free sequence.
+
+<Info>
+  Two invoices from the same company can't share a number or a sequence within the same year. If you try, invoicR shows "This invoice number (or its sequence this year) is already used."
+</Info>
+
+## How totals are calculated
+
+For each item, invoicR multiplies the amount by the price and rounds to two decimals. Tax is calculated per item and rounded the same way. The invoice shows:
+
+- **Subtotal:** the sum of item totals before tax
+- **Tax:** the sum of item taxes, broken down by tax rate on the PDF
+- **Total:** subtotal plus tax
+
+## Statuses
+
+Every invoice has one of four statuses. Change it with the status control on the invoice page.
+
+| Status | Meaning |
+| --- | --- |
+| **Ready** | Created but not sent yet. This is the status of every new invoice |
+| **Sent** | You sent the invoice to the client |
+| **Paid** | The client paid |
+| **Cancelled** | The invoice is void. It's excluded from turnover limits and the KPO book, and the PDF is marked as cancelled |
+
+## Invoices are final
+
+After you create an invoice, you can't edit it. The database rejects any change except the status. The invoice also keeps a copy of your company and client details from the moment you created it.
+
+To fix a mistake:
+
+- **Still Ready:** delete the invoice and create a new one.
+- **Sent, Paid, or Cancelled:** you can't delete it. Set it to **Cancelled** and issue a new invoice.
+
+## Find invoices
+
+The **Invoices** page lists the active company's invoices, newest first. Filter by year, month, or client. The filters use the issue date and stay in the URL, so you can bookmark or refresh a filtered view.
